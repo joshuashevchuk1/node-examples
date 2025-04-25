@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Command Example</title>
+</head>
+<body>
+<h1>Voice Command Example</h1>
+<p>Say "Hey Hackerman" to get a response, or "Start" for a different action.</p>
+
+<audio id="audio-1" controls></audio> <!-- For TTS Output -->
+
+<script>
+  // VoiceCommand class to handle speech recognition and text-to-speech
+  class VoiceCommand {
+    constructor() {
+      this.init();
+    }
+
+    // Initialize the voice command system
+    init() {
+      this.listenForVoiceCommandFromMic();
+    }
+
+    // Start listening to voice commands from the microphone
+    listenForVoiceCommandFromMic() {
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US'; // Set language
+        recognition.continuous = true; // Keep recognition running
+        recognition.interimResults = true; // Show interim results
+
+        // Start recognition
+        recognition.start();
+
+        // Handle when a voice command is detected
+        recognition.onresult = (event) => {
+          this.processVoiceCommand(event);
+        };
+
+        // Handle errors
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+        };
+
+        // Restart recognition after it ends
+        recognition.onend = () => {
+          console.log('Recognition ended, restarting...');
+          recognition.start();
+        };
+      } else {
+        console.warn('Speech Recognition API is not supported in this browser.');
+      }
+    }
+
+    // Process the voice commands detected
+    processVoiceCommand(event) {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript.toLowerCase();
+        console.log("Transcript:", transcript);
+
+        // Detect "Hey Hackerman" command
+        if (transcript.includes('hey hackerman')) {
+          console.log('Voice command detected: Hey Hackerman');
+          const response = 'Hackerman is online';
+          this.injectAudioFromSpeech(response); // Provide a voice response
+        }
+
+        // Detect "Start" command
+        if (transcript.includes('start')) {
+          console.log('Voice command detected: Start');
+          this.triggerStartAction();
+        }
+      }
+    }
+
+    // Example action triggered by "Start" voice command
+    triggerStartAction() {
+      console.log('Action triggered for "Start" command');
+      alert('Action triggered for "Start" command');
+    }
+
+    // Inject speech audio (response) directly through SpeechSynthesis (no audio element)
+    injectAudioFromSpeech(text) {
+      console.log("Injecting response audio:", text);
+
+      // Create a new SpeechSynthesisUtterance object for the provided text
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US'; // Set language
+      utterance.volume = 1; // Volume: 0 to 1
+      utterance.rate = 1; // Rate: 0.1 to 10
+      utterance.pitch = 1; // Pitch: 0 to 2
+
+      // Speak the text (this will trigger the onstart and onend events)
+      window.speechSynthesis.speak(utterance);
+
+      // Handle the end of speech synthesis (optional)
+      utterance.onend = () => {
+        console.log("Speech finished");
+      };
+
+      // Error handling for speech synthesis
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+      };
+    }
+  }
+
+  // Initialize the VoiceCommand class
+  const voiceCommand = new VoiceCommand();
+</script>
+</body>
+</html>
