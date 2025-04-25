@@ -2,8 +2,8 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const path = require('path');
 
-const AUDIO_FILE_PATH = path.join(__dirname, 'sample-audio.wav'); // Replace with your audio file path
-const SERVER_URL = 'ws://localhost:8080'; // Replace with your server address
+const AUDIO_FILE_PATH = path.join(__dirname, 'piano.wav'); // Replace with your audio file path
+const SERVER_URL = 'ws://localhost:8765'; // Replace with your server address
 
 const ws = new WebSocket(SERVER_URL);
 
@@ -11,7 +11,7 @@ ws.on('open', () => {
     console.log('Connected to server');
 
     const readStream = fs.createReadStream(AUDIO_FILE_PATH, {
-        highWaterMark: 1024, // Send in 1KB chunks
+        highWaterMark: 64000*15, // Send in 1KB chunks
     });
 
     readStream.on('data', (chunk) => {
